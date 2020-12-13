@@ -1,0 +1,2 @@
+add_subdirectory(HexEngine)
+add_subdirectory(HexaGo)
