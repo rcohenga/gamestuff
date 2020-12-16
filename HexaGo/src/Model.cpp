@@ -22,10 +22,13 @@ Model::Model(unsigned int gridRadius):
         {
             for(int r = - gridRadiusMinusOne; r <= gridRadiusMinusOne ; r++)
             {
-                Tile tile;
-                tile.value = Tile::EValue::Empty;
+                if(std::abs(r + q) <= gridRadiusMinusOne)
+                {
+                    Tile tile;
+                    tile.value = Tile::EValue::Empty;
 
-                m_tiles.emplace(AxialCoord(q,r), tile);
+                    m_tiles.emplace(AxialCoord(q,r), tile);
+                }
             }
         }
     }

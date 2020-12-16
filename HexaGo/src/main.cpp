@@ -13,7 +13,7 @@
 
 int main()
 {
-    auto p_model = std::make_shared<HexaGo::Model>(5);
+    auto p_model = std::make_shared<HexaGo::Model>(8);
     auto p_view  = std::make_shared<HexaGo::View>(p_model);
     p_view->start();
 

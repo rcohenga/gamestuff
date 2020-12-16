@@ -30,7 +30,7 @@ void View::start()
 
     unsigned int width = 800;
     unsigned int height = 600;
-    unsigned int radius = 30;
+    unsigned int radius = 20;
 
 
     sf::RenderWindow window(sf::VideoMode(width, height), "My window");
