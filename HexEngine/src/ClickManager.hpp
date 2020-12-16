@@ -9,6 +9,7 @@
 #define SRC_CLICKMANAGER_HPP_
 
 #include <set>
+#include <iostream>
 
 #include "SFML/Graphics.hpp"
 
@@ -54,7 +55,7 @@ public:
             {
             case sf::Event::MouseMoved:
             {
-                std::cout<<"MouseMoved\n";
+                //std::cout<<"MouseMoved\n";
                 sf::Vector2f mousePosition(sf::Mouse::getPosition(_window).x, sf::Mouse::getPosition(_window).y);
                 if(_currentHover)
                 {
@@ -94,7 +95,7 @@ public:
 
             case sf::Event::MouseButtonPressed:
             {
-                std::cout<<"MouseButtonPressed\n";
+                std::cout<<"MouseButtonPressed at " << sf::Mouse::getPosition(_window).x << ";" << sf::Mouse::getPosition(_window).y <<"\n";
                 std::set<sf::Mouse::Button> newlyPressedButtons;
                 for(int ibutton = 0; ibutton < (int)sf::Mouse::ButtonCount; ibutton++)
                 {

@@ -11,12 +11,14 @@
 #include <tuple>
 #include <map>
 
+#include "ModelItf.hpp"
+
 #include "Tile.hpp"
 
 namespace HexaGo
 {
 
-typedef std::tuple<int, int> AxialCoord;
+typedef std::tuple<int, int> AxialCoord; // [r, q]
 
 
 
@@ -33,9 +35,11 @@ public:
     Model(unsigned int gridRadius);
 
     bool layTile(AxialCoord coord);
-
     const std::map<AxialCoord, Tile>& getTiles() const;
     const ECurrentPlayer getCurrentPlayer() const;
+
+private:
+    void endTurn();
 private:
     std::map<AxialCoord, Tile> m_tiles;
     ECurrentPlayer m_currentPlayer;

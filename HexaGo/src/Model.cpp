@@ -5,6 +5,8 @@
  *      Author: raphael
  */
 
+#include <iostream>
+
 #include "Model.hpp"
 
 namespace HexaGo
@@ -31,6 +33,7 @@ Model::Model(unsigned int gridRadius):
 
 bool Model::layTile(AxialCoord coord)
 {
+    std::cout<<__FUNCTION__ << " " << std::get<0>(coord) << ";"<< std::get<1>(coord)<<"\n";
     auto tilePair = m_tiles.find(coord);
     if(tilePair == m_tiles.end())
     {
@@ -50,6 +53,9 @@ bool Model::layTile(AxialCoord coord)
     {
         tilePair->second.value = Tile::EValue::Black;
     }
+
+    endTurn();
+
     return true;
 }
 
@@ -61,6 +67,19 @@ const Model::ECurrentPlayer Model::getCurrentPlayer() const
 const std::map<AxialCoord, Tile>& Model::getTiles() const
 {
     return m_tiles;
+}
+
+
+void Model::endTurn()
+{
+    if(m_currentPlayer == Model::ECurrentPlayer::White)
+    {
+        m_currentPlayer = Model::ECurrentPlayer::Black;
+    }
+    else
+    {
+        m_currentPlayer = Model::ECurrentPlayer::White;
+    }
 }
 
 }

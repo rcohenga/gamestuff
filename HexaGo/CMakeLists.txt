@@ -8,7 +8,9 @@ add_executable(${PROJECT_NAME} ${SRC_FILES})
 
 target_link_libraries(${PROJECT_NAME}
 	sfml-graphics
-	sfml-window)
+	sfml-window
+	
+	HexEngine)
 	
 target_include_directories(${PROJECT_NAME}
 	PUBLIC
