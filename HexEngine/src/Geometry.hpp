@@ -22,11 +22,11 @@ bool almostEqual(float lhs, float rhs)
 
 bool isInsidePolygon(sf::Vector2f point, std::vector<sf::Vector2f> polygon)
 {
-    std::cout<<__FUNCTION__<<":\n";
-    for(const auto& point: polygon)
-    {
-        std::cout<<"\t" << point.x << "\t" <<point.y<<"\n";
-    }
+//    std::cout<<__FUNCTION__<<":\n";
+//    for(const auto& point: polygon)
+//    {
+//        std::cout<<"\t" << point.x << "\t" <<point.y<<"\n";
+//    }
 
     if(polygon.size() < 3)
     {
@@ -52,7 +52,7 @@ bool isInsidePolygon(sf::Vector2f point, std::vector<sf::Vector2f> polygon)
                     && point.y <= std::max(edgePoint1.y, edgePoint2.y)
                     && point.y >= std::min(edgePoint1.y, edgePoint2.y))
             {
-                std::cout<<"arete verticale at " << edgePoint1.x <<"\n";
+                //std::cout<<"arete verticale at " << edgePoint1.x <<"\n";
                 nbOfIntersections++;
             }
         }
@@ -84,7 +84,7 @@ bool isInsidePolygon(sf::Vector2f point, std::vector<sf::Vector2f> polygon)
         }
     }
 
-    std::cout<<"nbOfIntersections " << nbOfIntersections<<"\n";
+    //std::cout<<"nbOfIntersections " << nbOfIntersections<<"\n";
 
     return (nbOfIntersections%2);
 }

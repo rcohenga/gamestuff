@@ -9,6 +9,10 @@
 
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
+
+//HexEngine
+#include "Axial.hpp"
+
 #include "ClickManager.hpp"
 #include "Hex.hpp"
 
@@ -38,21 +42,20 @@ void View::start()
 
     sf::Vector2f middle(width/2, height/2);
 
-    std::map<AxialCoord, Hex> iv_hexes;
+    std::map<HE::Coord::Axial, Hex> iv_hexes;
     for(const auto& [coord, tile] : m_model->getTiles())
     {
-        std::get<0>(coord);
         Hex hex;
         hex.setCenter(middle
-                + sf::Vector2f(2 * radius * (float)std::get<0>(coord)                     , 0)
-                + sf::Vector2f(2 * radius * (float)std::get<1>(coord) * Geometry::cos(1,3), 2 * radius * (float)std::get<1>(coord) * Geometry::sin(1,3)));
+                + sf::Vector2f(2 * radius * (float)coord.r()                     , 0)
+                + sf::Vector2f(2 * radius * (float)coord.q() * Geometry::cos(1,3), 2 * radius * (float)coord.q() * Geometry::sin(1,3)));
         hex.setOrientation(Hex::EOrientation::Pointy);
         hex.setRadius(radius);
         hex.getShape().setFillColor(sf::Color::Yellow);
         hex.getShape().setOutlineColor(sf::Color::Black);
         hex.getShape().setOutlineThickness(1);
 
-        std::cout<< std::get<0>(coord) << ";" << std::get<1>(coord) << "=>" << hex.getCenter().x <<";" << hex.getCenter().y<<"\n";
+        std::cout<< coord.r() << ";" << coord.q() << "=>" << hex.getCenter().x <<";" << hex.getCenter().y<<"\n";
 
         iv_hexes.emplace(coord, hex);
     }

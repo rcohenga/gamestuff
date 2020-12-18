@@ -11,22 +11,20 @@
 #include <tuple>
 #include <map>
 
-#include "ModelItf.hpp"
+// HexEngine dependencies
+#include "Axial.hpp"
 
+// HexaGo dependencies
+#include "ModelItf.hpp"
 #include "Tile.hpp"
 
 namespace HexaGo
 {
 
-typedef std::tuple<int, int> AxialCoord; // [r, q]
-
-
-
-
 class Model
 {
 public:
-    enum class ECurrentPlayer
+    enum class EPlayer
     {
         White,
         Black
@@ -34,15 +32,21 @@ public:
 public:
     Model(unsigned int gridRadius);
 
-    bool layTile(AxialCoord coord);
-    const std::map<AxialCoord, Tile>& getTiles() const;
-    const ECurrentPlayer getCurrentPlayer() const;
+    bool layTile(HE::Coord::Axial coord);
+    const std::map<HE::Coord::Axial, Tile>& getTiles() const;
+    const EPlayer getCurrentPlayer() const;
 
 private:
     void endTurn();
+    void checkForDeadClusters();
+    void changePlayer();
 private:
-    std::map<AxialCoord, Tile> m_tiles;
-    ECurrentPlayer m_currentPlayer;
+    // GameState
+    std::map<HE::Coord::Axial, Tile> m_tiles;
+    EPlayer m_currentPlayer;
+
+    // Other stuff
+
 };
 
 
