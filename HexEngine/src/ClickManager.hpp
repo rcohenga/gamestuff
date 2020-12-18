@@ -78,12 +78,12 @@ public:
             case sf::Event::MouseButtonReleased:
             {
 
-                std::cout<<"MouseButtonReleased\n";
+               //std::cout<<"MouseButtonReleased\n";
                 std::set<sf::Mouse::Button> newlyReleasedButtons;
                 for(int ibutton = 0; ibutton < (int)sf::Mouse::ButtonCount; ibutton++)
                 {
                     auto button = static_cast<sf::Mouse::Button>(ibutton);
-                    std::cout<<"button " << ibutton << " " << (sf::Mouse::isButtonPressed(button) ? "pressed" : "not pressed") <<"\n";
+                    //std::cout<<"button " << ibutton << " " << (sf::Mouse::isButtonPressed(button) ? "pressed" : "not pressed") <<"\n";
                     if(_isPressed.at(button) != sf::Mouse::isButtonPressed(button))
                     {
                         newlyReleasedButtons.insert(button);
@@ -95,12 +95,12 @@ public:
 
             case sf::Event::MouseButtonPressed:
             {
-                std::cout<<"MouseButtonPressed at " << sf::Mouse::getPosition(_window).x << ";" << sf::Mouse::getPosition(_window).y <<"\n";
+                //std::cout<<"MouseButtonPressed at " << sf::Mouse::getPosition(_window).x << ";" << sf::Mouse::getPosition(_window).y <<"\n";
                 std::set<sf::Mouse::Button> newlyPressedButtons;
                 for(int ibutton = 0; ibutton < (int)sf::Mouse::ButtonCount; ibutton++)
                 {
                     auto button = static_cast<sf::Mouse::Button>(ibutton);
-                    std::cout<<"button " << ibutton << " " << (sf::Mouse::isButtonPressed(button) ? "pressed" : "not pressed") <<"\n";
+                    //std::cout<<"button " << ibutton << " " << (sf::Mouse::isButtonPressed(button) ? "pressed" : "not pressed") <<"\n";
                     if(_isPressed.at(button) != sf::Mouse::isButtonPressed(button))
                     {
                         newlyPressedButtons.insert(button);
@@ -117,10 +117,10 @@ public:
                         {
                             iv_clicked->onMouseEvent(IClickable::EMouseEventType::LeftClick);
                         }
-                        std::cout<<"left click\n";
+                        //std::cout<<"left click\n";
                         break;
                     case sf::Mouse::Right:
-                        std::cout<<"right click\n";
+                        //std::cout<<"right click\n";
                         if(iv_clicked)
                         {
                             iv_clicked->onMouseEvent(IClickable::EMouseEventType::RightClick);

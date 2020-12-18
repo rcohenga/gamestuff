@@ -26,15 +26,23 @@ class Model
 public:
     enum class EPlayer
     {
-        White,
-        Black
+        Black,
+        White
     };
+
+    struct Rules //TODO
+    {
+        float whiteAdvantage;
+        int boardRadius;
+    };
+
 public:
     Model(unsigned int gridRadius);
 
     bool layTile(HE::Coord::Axial coord);
     const std::map<HE::Coord::Axial, Tile>& getTiles() const;
     const EPlayer getCurrentPlayer() const;
+    float getScore(EPlayer player) const;
 
 private:
     void endTurn();
@@ -44,6 +52,7 @@ private:
     // GameState
     std::map<HE::Coord::Axial, Tile> m_tiles;
     EPlayer m_currentPlayer;
+    std::map<EPlayer, float> m_score;
 
     // Other stuff
 

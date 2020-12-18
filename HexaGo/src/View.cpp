@@ -55,7 +55,7 @@ void View::start()
         hex.getShape().setOutlineColor(sf::Color::Black);
         hex.getShape().setOutlineThickness(1);
 
-        std::cout<< coord.r() << ";" << coord.q() << "=>" << hex.getCenter().x <<";" << hex.getCenter().y<<"\n";
+        //std::cout<< coord.r() << ";" << coord.q() << "=>" << hex.getCenter().x <<";" << hex.getCenter().y<<"\n";
 
         iv_hexes.emplace(coord, hex);
     }
@@ -71,6 +71,9 @@ void View::start()
     }
 
     // run the program as long as the window is open
+    float blackScore = m_model->getScore(Model::EPlayer::Black);
+    float whiteScore = m_model->getScore(Model::EPlayer::Black);
+
     while (window.isOpen())
     {
         // check all the window's events that were triggered since the last iteration of the loop
@@ -129,6 +132,15 @@ void View::start()
             window.draw(hex.getShape());
         }
 
+
+        if(m_model->getScore(Model::EPlayer::Black) != blackScore || m_model->getScore(Model::EPlayer::White) != whiteScore)
+        {
+            blackScore = m_model->getScore(Model::EPlayer::Black);
+            whiteScore = m_model->getScore(Model::EPlayer::White);
+
+            std::cout<<"Black\t"<<m_model->getScore(Model::EPlayer::Black)<<"\n";
+            std::cout<<"White\t"<<m_model->getScore(Model::EPlayer::White)<<"\n";
+        }
 
         // end the current frame
         window.display();
