@@ -43,6 +43,7 @@ bool isInsidePolygon(sf::Vector2f point, std::vector<sf::Vector2f> polygon)
 
         if(almostEqual(edgePoint1.y,edgePoint2.y))
         {
+            //std::cout<<i<<"\thoriz\n";
             // arete horizontale :s'il y a une intersection ici elle sera detectee aux aretes voisines : on peut l'ignorer
         }
         else if(almostEqual(edgePoint1.x, edgePoint2.x))
@@ -52,7 +53,7 @@ bool isInsidePolygon(sf::Vector2f point, std::vector<sf::Vector2f> polygon)
                     && point.y <= std::max(edgePoint1.y, edgePoint2.y)
                     && point.y >= std::min(edgePoint1.y, edgePoint2.y))
             {
-                //std::cout<<"arete verticale at " << edgePoint1.x <<"\n";
+                //std::cout<<i<<"\tarete verticale at " << edgePoint1.x <<"\n";
                 nbOfIntersections++;
             }
         }
@@ -67,17 +68,19 @@ bool isInsidePolygon(sf::Vector2f point, std::vector<sf::Vector2f> polygon)
                 if(edgePoint1.x < edgePoint2.x)
                 {
                     if(x_intersection >= edgePoint1.x &&
-                       x_intersection <  edgePoint2.x)
+                       x_intersection <=  edgePoint2.x)
                     {
                         nbOfIntersections++;
+                        //std::cout<<i<<"\tgeneral 1: " << x_intersection << " >= " << edgePoint1.x << " && " << x_intersection << " <= " << edgePoint2.x <<"\n";
                     }
                 }
                 else
                 {
                     if(x_intersection <= edgePoint1.x &&
-                       x_intersection >  edgePoint2.x)
+                       x_intersection >=  edgePoint2.x)
                     {
                         nbOfIntersections++;
+                        //std::cout<<i<<"\tgeneral 2: " << x_intersection << " <= " << edgePoint1.x << " && " << x_intersection << " >= " << edgePoint2.x <<"\n";
                     }
                 }
             }

@@ -28,6 +28,8 @@ View::View(std::shared_ptr<Model> model):
 };
 
 
+
+
 void View::start()
 {
     // create the window
@@ -60,6 +62,10 @@ void View::start()
         iv_hexes.emplace(coord, hex);
     }
 
+    // hover stuff
+    m_tileOnHover.currentlyHovering = false;
+
+
     for(auto& [coord, hex] : iv_hexes)
     {
         auto coordCopy = coord;
@@ -67,12 +73,15 @@ void View::start()
         hex.setCallback(IClickable::EMouseEventType::RightClick,[&hex](){
             hex.setOrientation(static_cast<Hex::EOrientation>(1-static_cast<int>(hex.getOrientation())));
         });
+        hex.setCallback(IClickable::EMouseEventType::Hover,[this, coordCopy](){this->m_tileOnHover.currentlyHovering = true ; m_tileOnHover.coord = coordCopy;});
+        hex.setCallback(IClickable::EMouseEventType::HoverRelease,[this](){this->m_tileOnHover.currentlyHovering = false;});
+
         iv_clickManager.addClickable(&hex);
     }
 
     // run the program as long as the window is open
     float blackScore = m_model->getScore(Model::EPlayer::Black);
-    float whiteScore = m_model->getScore(Model::EPlayer::Black);
+    float whiteScore = m_model->getScore(Model::EPlayer::White);
 
     while (window.isOpen())
     {
@@ -97,11 +106,6 @@ void View::start()
             }
         }
 
-        sf::Vector2f delta;
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))  delta +=  sf::Vector2f(0,1);
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))    delta +=  sf::Vector2f(0,-1);
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))  delta +=  sf::Vector2f(-1,0);
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)) delta +=  sf::Vector2f(1,0);
 
         // clear the window with black color
         window.clear(sf::Color::Black);
@@ -130,6 +134,21 @@ void View::start()
 
             hex.getShape().setFillColor(iv_hexColor);
             window.draw(hex.getShape());
+        }
+
+        // hover
+        if(m_tileOnHover.currentlyHovering)
+        {
+            //std::cout<<"currently hovering over " << m_tileOnHover.coord.r() << "\t" << m_tileOnHover.coord.q()<<"\n";
+            if(m_model->getTiles().at(m_tileOnHover.coord).value == Tile::EValue::Empty)
+            {
+
+                auto& hexShape = iv_hexes.at(m_tileOnHover.coord).getShape();
+                hexShape.setFillColor(m_model->getCurrentPlayer() ==
+                        Model::EPlayer::Black ? sf::Color::Blue : sf::Color::White);
+
+                window.draw(hexShape);
+            }
         }
 
 

@@ -15,6 +15,12 @@
 namespace HexaGo
 {
 
+struct TileOnHover
+{
+    bool currentlyHovering;
+    HE::Coord::Axial coord;
+};
+
 class View
 {
 public:
@@ -24,6 +30,7 @@ public:
 
 private:
     std::shared_ptr<Model> m_model;
+    TileOnHover m_tileOnHover;
 };
 
 } // namespace HexaGo

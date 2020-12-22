@@ -9,7 +9,10 @@
 #include <iostream>
 #include <algorithm>
 
+#include "GridUtils.hpp"
+
 #include "Model.hpp"
+
 
 namespace HexaGo
 {
@@ -100,106 +103,42 @@ public:
     int number;
 };
 
+
+
 void Model::checkForDeadClusters()
 {
+    std::cout<<__FUNCTION__<<"\n";
     // Create clusters
     std::map<HE::Coord::Axial, int> clusterNumber;
-    std::vector<Cluster> clusters;
+    auto clusters = HE::clusterize<Tile>(m_tiles, [](const Tile& rhs, const Tile& lhs){return rhs.value == lhs.value;});
 
-    for(const auto& [coord, tile] : m_tiles)
+    std::cout<<"clusters:\n";
+    for(int i = 0 ; i < clusters.size() ; i++)
     {
-        clusterNumber.emplace(coord, -1);
-    }
-
-    for(const auto& [coord, tile] : m_tiles)
-    {
-        if(clusterNumber.at(coord) == -1
-         &&tile.value != Tile::EValue::Empty)
+        const auto& cluster = clusters[i];
+        if(m_tiles.at(*cluster.begin()).value != Tile::EValue::Empty)
         {
-
-            Cluster newCluster;
-            newCluster.owner = (tile.value == Tile::EValue::Black ? EPlayer::Black : EPlayer::White);
-            newCluster.tiles.insert(coord);
-            newCluster.number = clusters.size();
-            clusters.push_back(newCluster);
-            clusterNumber.at(coord) = newCluster.number;
-
-            // explore neighbors
-            std::set<HE::Coord::Axial> neighbors;
-            neighbors.insert(coord + HE::Coord::Axial(1 ,0));
-            neighbors.insert(coord + HE::Coord::Axial(-1,0));
-            neighbors.insert(coord + HE::Coord::Axial(0 ,1));
-            neighbors.insert(coord + HE::Coord::Axial(0,-1));
-            neighbors.insert(coord + HE::Coord::Axial(1,-1));
-            neighbors.insert(coord + HE::Coord::Axial(-1,1));
-
-            std::set<HE::Coord::Axial> neighborsOfSameColor;
-            for(auto& neighbor : neighbors)
+            std::cout<<"\tcluster "<<i<< "\t" << (m_tiles.at(*cluster.begin()).value == Tile::EValue::Black ? "Black" : "White") <<"\n";
+            for(const auto& tile : cluster)
             {
-                auto itNeighbor = m_tiles.find(neighbor);
-                if(itNeighbor != m_tiles.end() && itNeighbor->second.value == tile.value)
-                {
-                    neighborsOfSameColor.insert(neighbor);
-                }
-            }
-
-            std::set<int> clustersToMerge;
-            clustersToMerge.insert(clusterNumber.at(coord));
-            for(auto& neighbor : neighborsOfSameColor)
-            {
-                if(clusterNumber.at(neighbor) == -1)
-                {
-                    clusterNumber.at(neighbor) = clusterNumber.at(coord);
-                    clusters.at(clusterNumber.at(coord)).tiles.insert(neighbor);
-                }
-                else
-                {
-                    clustersToMerge.insert(clusterNumber.at(neighbor));
-
-                }
-            }
-
-
-            if(clustersToMerge.size() > 1)
-            {
-                auto clusterIt = clustersToMerge.begin();
-                clusterIt++;
-                while(clusterIt != clustersToMerge.end())
-                {
-                    Cluster& clusterToMergeInto = clusters[*clustersToMerge.begin()];
-                    Cluster& clusterToMergeFrom = clusters[*clusterIt];
-
-                    for(auto tile : clusterToMergeFrom.tiles)
-                    {
-                        clusterNumber.at(tile) = clusterToMergeInto.number;
-                        clusterToMergeInto.tiles.insert(tile);
-                    }
-                    clusterToMergeFrom.tiles.clear();
-                    clusterIt++;
-                }
+                std::cout<<"\t\t"<<tile.r()<<"\t"<<tile.q()<<"\n";
             }
         }
     }
 
-
     // Compute DF for each
 
-    std::set<int> clustersWithNoFreedom;
-    for(auto& cluster : clusters)
+    std::set<std::pair<int, EPlayer>> clustersWithNoFreedom;
+    for(int i = 0 ; i < clusters.size() ; i++)
     {
-        if(!cluster.tiles.empty())
+        const auto& cluster = clusters[i];
+        if(!cluster.empty() && m_tiles.at(*cluster.begin()).value != Tile::EValue::Empty)
         {
             bool hasFreedom = false;
-            for(auto& tile : cluster.tiles)
+            for(auto& tile : cluster)
             {
                 // explore neighbors
-                std::set<HE::Coord::Axial> neighbors;
-                neighbors.insert(tile + HE::Coord::Axial(1 ,0));
-                neighbors.insert(tile + HE::Coord::Axial(-1,0));
-                neighbors.insert(tile + HE::Coord::Axial(0 ,1));
-                neighbors.insert(tile + HE::Coord::Axial(0,-1));
-                neighbors.insert(tile + HE::Coord::Axial(1,-1));
-                neighbors.insert(tile + HE::Coord::Axial(-1,1));
+                std::set<HE::Coord::Axial> neighbors = HE::getNeighbors(tile, m_tiles);
 
                 for(auto& neighbor : neighbors)
                 {
@@ -214,7 +153,7 @@ void Model::checkForDeadClusters()
                 if(hasFreedom){break;}
             }
 
-            if(!hasFreedom){clustersWithNoFreedom.insert(cluster.number);}
+            if(!hasFreedom){clustersWithNoFreedom.emplace(i, (m_tiles.at(*cluster.begin()).value == Tile::EValue::Black ? EPlayer::Black : EPlayer::White));}
         }
     }
 
@@ -226,22 +165,20 @@ void Model::checkForDeadClusters()
         EPlayer playerLosingClusters = (std::find_if(
                 clustersWithNoFreedom.begin(),
                 clustersWithNoFreedom.end(),
-                [clusters, currentOpponent](int i){return clusters.at(i).owner == currentOpponent;}) !=  clustersWithNoFreedom.end() ?
+                [currentOpponent](std::pair<int, EPlayer> p){return p.second == currentOpponent;}) !=  clustersWithNoFreedom.end() ?
                         currentOpponent : m_currentPlayer);
 
         for(auto& clusterId : clustersWithNoFreedom)
         {
-            auto& cluster = clusters.at(clusterId);
-            if(cluster.owner == playerLosingClusters)
+            auto& cluster = clusters.at(clusterId.first);
+            if(clusterId.second == playerLosingClusters)
             {
 
-                m_score.at(playerLosingClusters)-=cluster.tiles.size();
-                for(auto& tile : cluster.tiles)
+                m_score.at(playerLosingClusters)-=cluster.size();
+                for(auto& tile : cluster)
                 {
                     m_tiles.at(tile).value = Tile::EValue::Empty;
-
                 }
-                //TODO update score
             }
         }
     }
