@@ -108,7 +108,15 @@ void View::start()
                         if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl))
                         {
                             std::cout<<"LControl pressed\n";
-                            m_model->reverse();
+                            if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift))
+                            {
+                                std::cout<<"LShift pressed\n";
+                                m_model->unReverse();
+                            }
+                            else
+                            {
+                                m_model->reverse();
+                            }
                         }
                     }
                 break;

@@ -22,24 +22,29 @@ namespace HexaGo
 
 Model::Model(unsigned int gridRadius):
         m_board(gridRadius)
+        ,m_currentAction(nullptr)
+        ,m_previousActions()
+        ,m_actionHead(0)
 {}
 
 bool Model::layTile(HE::Coord::Axial coord)
 {
+    m_currentAction = std::make_shared<BoardAction>();
+
     if(m_board.getTiles().find(coord) == m_board.getTiles().end()) return false;
 
-    m_currentAction = std::make_shared<BoardAction>();
     auto iv_changeTileContentOperation = std::make_shared<ChangeTileContent>(
             coord,
             playerToValue(this->getCurrentPlayer()),
-            m_board.getTiles().at(coord).value
-    );
-
+            m_board.getTiles().at(coord).value);
     if(!iv_changeTileContentOperation->execute(m_board))return false;
-
     m_currentAction->addOperation(iv_changeTileContentOperation);
-    endTurn();
-    m_previousActions.push_back(m_currentAction);
+
+    checkForDeadClusters();
+    changePlayer();
+
+    saveCurrentAction();
+
 
     return true;
 }
@@ -47,11 +52,25 @@ bool Model::layTile(HE::Coord::Axial coord)
 
 bool Model::reverse()
 {
-    //TODO navigation de l'arbre
-    if(!m_previousActions.empty())
+    if(m_actionHead != 0)
     {
-        auto lastAction = m_previousActions.back();
-        return lastAction->reverse()->execute(m_board);
+        m_previousActions[m_actionHead-1]->reverse()->execute(m_board);
+        m_actionHead--;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool Model::unReverse()
+{
+    if(m_actionHead < m_previousActions.size())
+    {
+        m_previousActions[m_actionHead]->execute(m_board);
+        m_actionHead++;
+        return true;
     }
     else
     {
@@ -73,12 +92,6 @@ float Model::getScore(EPlayer player) const
 const std::map<HE::Coord::Axial, Tile>& Model::getTiles() const
 {
     return m_board.getTiles();
-}
-
-void Model::endTurn()
-{
-    checkForDeadClusters();
-    changePlayer();
 }
 
 void Model::checkForDeadClusters()
@@ -169,6 +182,14 @@ void Model::changePlayer()
     auto changePlayer = std::make_shared<ChangeCurrentPlayer>(otherPlayer(m_board.getCurrentPlayer()), m_board.getCurrentPlayer());
     changePlayer->execute(m_board);
     m_currentAction->addOperation(changePlayer);
+}
+
+
+void Model::saveCurrentAction()
+{
+    m_previousActions.erase(m_previousActions.begin() + m_actionHead , m_previousActions.end());
+    m_previousActions.push_back(m_currentAction);
+    m_actionHead++;
 }
 
 }

@@ -11,6 +11,7 @@
 #include <tuple>
 #include <map>
 #include <vector>
+#include <list>
 
 // HexEngine dependencies
 #include "Axial.hpp"
@@ -39,21 +40,22 @@ public:
 
     bool layTile(HE::Coord::Axial coord);
     bool reverse();
+    bool unReverse();
     const std::map<HE::Coord::Axial, Tile>& getTiles() const;
     const EPlayer getCurrentPlayer() const;
     float getScore(EPlayer player) const;
 
 private:
-    void endTurn();
     void checkForDeadClusters();
     void changePlayer();
+    void saveCurrentAction();
 private:
     // GameState
     Board m_board;
 
     std::shared_ptr<BoardAction> m_currentAction; // Action being created, will be inserted in m_previousActions upon completion
     std::vector<std::shared_ptr<BoardAction>> m_previousActions;
-
+    size_t m_actionHead;
 
 
 
