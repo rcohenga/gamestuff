@@ -80,8 +80,8 @@ void View::start()
     }
 
     // run the program as long as the window is open
-    float blackScore = m_model->getScore(Model::EPlayer::Black);
-    float whiteScore = m_model->getScore(Model::EPlayer::White);
+    float blackScore = m_model->getScore(EPlayer::Black);
+    float whiteScore = m_model->getScore(EPlayer::White);
 
     while (window.isOpen())
     {
@@ -100,6 +100,17 @@ void View::start()
             case(sf::Event::MouseButtonReleased):
             case(sf::Event::MouseMoved):
                 iv_clickManager.mouseEvent(event);
+                break;
+            case(sf::Event::KeyPressed):
+                    if(event.key.code == sf::Keyboard::Key::Z)
+                    {
+                        std::cout<<"Z pressed\n";
+                        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl))
+                        {
+                            std::cout<<"LControl pressed\n";
+                            m_model->reverse();
+                        }
+                    }
                 break;
             default:
                 break;
@@ -145,20 +156,20 @@ void View::start()
 
                 auto& hexShape = iv_hexes.at(m_tileOnHover.coord).getShape();
                 hexShape.setFillColor(m_model->getCurrentPlayer() ==
-                        Model::EPlayer::Black ? sf::Color::Blue : sf::Color::White);
+                        EPlayer::Black ? sf::Color::Blue : sf::Color::White);
 
                 window.draw(hexShape);
             }
         }
 
 
-        if(m_model->getScore(Model::EPlayer::Black) != blackScore || m_model->getScore(Model::EPlayer::White) != whiteScore)
+        if(m_model->getScore(EPlayer::Black) != blackScore || m_model->getScore(EPlayer::White) != whiteScore)
         {
-            blackScore = m_model->getScore(Model::EPlayer::Black);
-            whiteScore = m_model->getScore(Model::EPlayer::White);
+            blackScore = m_model->getScore(EPlayer::Black);
+            whiteScore = m_model->getScore(EPlayer::White);
 
-            std::cout<<"Black\t"<<m_model->getScore(Model::EPlayer::Black)<<"\n";
-            std::cout<<"White\t"<<m_model->getScore(Model::EPlayer::White)<<"\n";
+            std::cout<<"Black\t"<<m_model->getScore(EPlayer::Black)<<"\n";
+            std::cout<<"White\t"<<m_model->getScore(EPlayer::White)<<"\n";
         }
 
         // end the current frame

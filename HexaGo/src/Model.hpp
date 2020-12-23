@@ -10,12 +10,15 @@
 
 #include <tuple>
 #include <map>
+#include <vector>
 
 // HexEngine dependencies
 #include "Axial.hpp"
 
 // HexaGo dependencies
 #include "ModelItf.hpp"
+#include "Board.hpp"
+#include "BoardAction.hpp"
 #include "Tile.hpp"
 
 namespace HexaGo
@@ -24,11 +27,6 @@ namespace HexaGo
 class Model
 {
 public:
-    enum class EPlayer
-    {
-        Black,
-        White
-    };
 
     struct Rules //TODO
     {
@@ -40,6 +38,7 @@ public:
     Model(unsigned int gridRadius);
 
     bool layTile(HE::Coord::Axial coord);
+    bool reverse();
     const std::map<HE::Coord::Axial, Tile>& getTiles() const;
     const EPlayer getCurrentPlayer() const;
     float getScore(EPlayer player) const;
@@ -50,9 +49,13 @@ private:
     void changePlayer();
 private:
     // GameState
-    std::map<HE::Coord::Axial, Tile> m_tiles;
-    EPlayer m_currentPlayer;
-    std::map<EPlayer, float> m_score;
+    Board m_board;
+
+    std::shared_ptr<BoardAction> m_currentAction; // Action being created, will be inserted in m_previousActions upon completion
+    std::vector<std::shared_ptr<BoardAction>> m_previousActions;
+
+
+
 
     // Other stuff
 

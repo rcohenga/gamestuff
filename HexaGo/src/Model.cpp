@@ -12,7 +12,8 @@
 #include "GridUtils.hpp"
 
 #include "Model.hpp"
-
+#include "BoardOperations.hpp"
+#include "Utils.hpp"
 
 namespace HexaGo
 {
@@ -20,73 +21,58 @@ namespace HexaGo
 
 
 Model::Model(unsigned int gridRadius):
-        m_currentPlayer(EPlayer::Black)
-{
-    // initializing tiles
-    if(gridRadius > 0)
-    {
-        int gridRadiusMinusOne = gridRadius -1;
-        for(int q = - gridRadiusMinusOne; q <= gridRadiusMinusOne ; q++)
-        {
-            for(int r = - gridRadiusMinusOne; r <= gridRadiusMinusOne ; r++)
-            {
-                if(std::abs(r + q) <= gridRadiusMinusOne)
-                {
-                    Tile tile;
-                    tile.value = Tile::EValue::Empty;
-
-                    m_tiles.emplace(HE::Coord::Axial(q,r), tile);
-                }
-            }
-        }
-    }
-
-    // initializing score
-    m_score.emplace(EPlayer::White, 0);
-    m_score.emplace(EPlayer::Black, 0);
-}
+        m_board(gridRadius)
+{}
 
 bool Model::layTile(HE::Coord::Axial coord)
 {
-    auto tilePair = m_tiles.find(coord);
-    if(tilePair == m_tiles.end())
-    {
-        return false;
-    }
+    if(m_board.getTiles().find(coord) == m_board.getTiles().end()) return false;
 
-    if(tilePair->second.value != Tile::EValue::Empty)
-    {
-        return false;
-    }
+    m_currentAction = std::make_shared<BoardAction>();
+    auto iv_changeTileContentOperation = std::make_shared<ChangeTileContent>(
+            coord,
+            playerToValue(this->getCurrentPlayer()),
+            m_board.getTiles().at(coord).value
+    );
 
-    if(getCurrentPlayer() == EPlayer::White)
-    {
-        tilePair->second.value = Tile::EValue::White;
-    }
-    else
-    {
-        tilePair->second.value = Tile::EValue::Black;
-    }
+    if(!iv_changeTileContentOperation->execute(m_board))return false;
 
+    m_currentAction->addOperation(iv_changeTileContentOperation);
     endTurn();
+    m_previousActions.push_back(m_currentAction);
 
     return true;
 }
 
-const Model::EPlayer Model::getCurrentPlayer() const
+
+bool Model::reverse()
 {
-    return m_currentPlayer;
+    //TODO navigation de l'arbre
+    if(!m_previousActions.empty())
+    {
+        auto lastAction = m_previousActions.back();
+        return lastAction->reverse()->execute(m_board);
+    }
+    else
+    {
+        return false;
+    }
+}
+
+const EPlayer Model::getCurrentPlayer() const
+{
+    return m_board.getCurrentPlayer();
 }
 
 
 float Model::getScore(EPlayer player) const
 {
-    return m_score.at(player);
+    return m_board.getScore(player);
 }
 
 const std::map<HE::Coord::Axial, Tile>& Model::getTiles() const
 {
-    return m_tiles;
+    return m_board.getTiles();
 }
 
 void Model::endTurn()
@@ -95,30 +81,20 @@ void Model::endTurn()
     changePlayer();
 }
 
-class Cluster
-{
-public:
-    std::set<HE::Coord::Axial> tiles;
-    Model::EPlayer owner;
-    int number;
-};
-
-
-
 void Model::checkForDeadClusters()
 {
     std::cout<<__FUNCTION__<<"\n";
     // Create clusters
     std::map<HE::Coord::Axial, int> clusterNumber;
-    auto clusters = HE::clusterize<Tile>(m_tiles, [](const Tile& rhs, const Tile& lhs){return rhs.value == lhs.value;});
+    auto clusters = HE::clusterize<Tile>(m_board.getTiles(), [](const Tile& rhs, const Tile& lhs){return rhs.value == lhs.value;});
 
     std::cout<<"clusters:\n";
     for(int i = 0 ; i < clusters.size() ; i++)
     {
         const auto& cluster = clusters[i];
-        if(m_tiles.at(*cluster.begin()).value != Tile::EValue::Empty)
+        if(m_board.getTiles().at(*cluster.begin()).value != Tile::EValue::Empty)
         {
-            std::cout<<"\tcluster "<<i<< "\t" << (m_tiles.at(*cluster.begin()).value == Tile::EValue::Black ? "Black" : "White") <<"\n";
+            std::cout<<"\tcluster "<<i<< "\t" << (m_board.getTiles().at(*cluster.begin()).value == Tile::EValue::Black ? "Black" : "White") <<"\n";
             for(const auto& tile : cluster)
             {
                 std::cout<<"\t\t"<<tile.r()<<"\t"<<tile.q()<<"\n";
@@ -132,18 +108,18 @@ void Model::checkForDeadClusters()
     for(int i = 0 ; i < clusters.size() ; i++)
     {
         const auto& cluster = clusters[i];
-        if(!cluster.empty() && m_tiles.at(*cluster.begin()).value != Tile::EValue::Empty)
+        if(!cluster.empty() && m_board.getTiles().at(*cluster.begin()).value != Tile::EValue::Empty)
         {
             bool hasFreedom = false;
             for(auto& tile : cluster)
             {
                 // explore neighbors
-                std::set<HE::Coord::Axial> neighbors = HE::getNeighbors(tile, m_tiles);
+                std::set<HE::Coord::Axial> neighbors = HE::getNeighbors(tile, m_board.getTiles());
 
                 for(auto& neighbor : neighbors)
                 {
-                    auto itNeighbor = m_tiles.find(neighbor);
-                    if(itNeighbor != m_tiles.end() && itNeighbor->second.value == Tile::EValue::Empty)
+                    auto itNeighbor = m_board.getTiles().find(neighbor);
+                    if(itNeighbor != m_board.getTiles().end() && itNeighbor->second.value == Tile::EValue::Empty)
                     {
                         hasFreedom = true;
                         break;
@@ -153,31 +129,35 @@ void Model::checkForDeadClusters()
                 if(hasFreedom){break;}
             }
 
-            if(!hasFreedom){clustersWithNoFreedom.emplace(i, (m_tiles.at(*cluster.begin()).value == Tile::EValue::Black ? EPlayer::Black : EPlayer::White));}
+            if(!hasFreedom){clustersWithNoFreedom.emplace(i, (m_board.getTiles().at(*cluster.begin()).value == Tile::EValue::Black ? EPlayer::Black : EPlayer::White));}
         }
     }
 
     // Delete dead clusters
     if(!clustersWithNoFreedom.empty())
     {
-        EPlayer currentOpponent = m_currentPlayer == EPlayer::Black ? EPlayer::White : EPlayer::Black;
+        EPlayer currentOpponent = otherPlayer(getCurrentPlayer());
         // If opponent has clusters with 0 DDL, we delete his, otherwise we delete currentplayer's
         EPlayer playerLosingClusters = (std::find_if(
                 clustersWithNoFreedom.begin(),
                 clustersWithNoFreedom.end(),
                 [currentOpponent](std::pair<int, EPlayer> p){return p.second == currentOpponent;}) !=  clustersWithNoFreedom.end() ?
-                        currentOpponent : m_currentPlayer);
+                        currentOpponent : getCurrentPlayer());
 
-        for(auto& clusterId : clustersWithNoFreedom)
+        for(auto& [clusterId, clusterOwner] : clustersWithNoFreedom)
         {
-            auto& cluster = clusters.at(clusterId.first);
-            if(clusterId.second == playerLosingClusters)
+            if(clusterOwner == playerLosingClusters)
             {
+                auto& cluster = clusters[clusterId];
+                auto scoreOperation = std::make_shared<ChangeScore>(playerLosingClusters, -(float)cluster.size());
+                scoreOperation->execute(m_board);
+                m_currentAction->addOperation(scoreOperation);
 
-                m_score.at(playerLosingClusters)-=cluster.size();
                 for(auto& tile : cluster)
                 {
-                    m_tiles.at(tile).value = Tile::EValue::Empty;
+                    auto removeOperation = std::make_shared<ChangeTileContent>(tile, Tile::EValue::Empty, playerToValue(playerLosingClusters));
+                    removeOperation->execute(m_board);
+                    m_currentAction->addOperation(removeOperation);
                 }
             }
         }
@@ -186,14 +166,9 @@ void Model::checkForDeadClusters()
 
 void Model::changePlayer()
 {
-    if(m_currentPlayer == Model::EPlayer::White)
-    {
-        m_currentPlayer = Model::EPlayer::Black;
-    }
-    else
-    {
-        m_currentPlayer = Model::EPlayer::White;
-    }
+    auto changePlayer = std::make_shared<ChangeCurrentPlayer>(otherPlayer(m_board.getCurrentPlayer()), m_board.getCurrentPlayer());
+    changePlayer->execute(m_board);
+    m_currentAction->addOperation(changePlayer);
 }
 
 }
