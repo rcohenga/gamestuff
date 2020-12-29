@@ -44,17 +44,31 @@ int main()
 
     while(true)
     {
-        char data[100];
-        std::size_t received;
+        sf::Packet packet;
 
-        if(client.receive(data, 100, received) != sf::Socket::Done)
+        if(client.receive(packet) != sf::Socket::Done)
         {
             std::cout<<"Error receiving data\n";
         }
         else
         {
-            std::cout<<"received " << received << " bytes of data: " << data<<"\n";
-            memset(data, 0, 100);
+            sf::Int32 i;
+            packet >> i;
+            std::cout<<"received " << i <<  "\n";
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+            i++;
+            sf::Packet newPacket;
+            newPacket >> i;
+            if(client.send(newPacket) != sf::Socket::Done)
+            {
+                std::cout<<"Error sending data\n";
+            }
+            else
+            {
+                std::cout<<"sent " << i <<"\n";
+            }
         }
     }
 

@@ -37,20 +37,39 @@ int main()
     }
     while (status != sf::Socket::Done);
 
+    sf::Packet initial;
     int i = 0;
+
+    initial << sf::Int32(0);
+    std::cout<<"sending " << i <<"\n";
+    socket.send(initial);
+
     while(true)
     {
         std::cout<<"Client is connected... ";
-        std::string data;
-        std::cin >> data;
-
-        if(socket.send(data.c_str(), data.size()) != sf::Socket::Done)
+        sf::Packet packet;
+        if(socket.receive(packet) != sf::Socket::Done)
         {
-            std::cout<<"Error sending data\n";
+            std::cout<<"Error receiving data\n";
         }
         else
         {
-            std::cout<<"successfully sent data '"<<data<<"'\n";
+            packet >> i;
+            std::cout<<"received data "<<i<<"\n";
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+            i++;
+            sf::Packet newPacket;
+            newPacket << i;
+            if(socket.send(newPacket) != sf::Socket::Done)
+            {
+                std::cout<<"Error sending data\n";
+            }
+            else
+            {
+                std::cout<<"successfully sent " << i <<"\n";
+            }
         }
     }
 }
